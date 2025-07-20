@@ -70,22 +70,51 @@ export const ProductGrid = () => {
         </ScrollAnimation>
 
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.slice(0, 6).map((product, index) => (
-            <StaggerItem key={product.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  duration: 0.6, 
-                  delay: index * 0.1,
-                  ease: [0.25, 0.46, 0.45, 0.94]
-                }}
-              >
-                <ProductCard {...product} />
-              </motion.div>
-            </StaggerItem>
-          ))}
+          {products.slice(0, 6).map((product, index) => {
+            // Robustly find the first image and first video in the images array
+            let imageProp = '';
+            let videoProp = '';
+            if (Array.isArray(product.images)) {
+              for (const img of product.images) {
+                let imgUrl = '';
+                let vidUrl = '';
+                if (typeof img === 'string' && img.trim().startsWith('{')) {
+                  try {
+                    const parsed = JSON.parse(img);
+                    if (parsed.image) imgUrl = parsed.image;
+                    if (parsed.video) vidUrl = parsed.video;
+                  } catch {}
+                } else if (typeof img === 'object' && img !== null) {
+                  if (img.image) imgUrl = img.image;
+                  if (img.video) vidUrl = img.video;
+                } else if (typeof img === 'string') {
+                  const isImage = img.match(/\.(png|jpe?g|webp|gif)(\?.*)?$/i);
+                  const isVideo = img.match(/\.(mp4|webm|mov)(\?.*)?$/i);
+                  if (isImage) imgUrl = img;
+                  if (isVideo) vidUrl = img;
+                }
+                if (!imageProp && imgUrl) imageProp = imgUrl;
+                if (!videoProp && vidUrl) videoProp = vidUrl;
+                if (imageProp && videoProp) break;
+              }
+            }
+            return (
+              <StaggerItem key={product.id}>
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: index * 0.1,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                  }}
+                >
+                  <ProductCard {...product} image={imageProp} video={videoProp} />
+                </motion.div>
+              </StaggerItem>
+            );
+          })}
         </StaggerContainer>
 
         <ScrollAnimation direction="up" delay={0.6} className="text-center mt-16">

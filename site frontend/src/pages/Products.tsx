@@ -11,6 +11,7 @@ import { useSearchStore } from "@/hooks/use-search-store";
 import Fuse from "fuse.js";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { fetchProducts } from "@/lib/fetchProducts";
 
 const categories = [
   "All",
@@ -34,6 +35,21 @@ export const Products = () => {
     const q = params.get("search") || "";
     setSearchTerm(q);
   }, [location.search, setSearchTerm]);
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProducts()
+      .then(data => {
+        setProducts(data || []);
+        setError(null);
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<"name" | "price">("name");
@@ -75,7 +91,10 @@ export const Products = () => {
       }
     });
     return filtered;
-  }, [searchTerm, selectedCategory, sortBy, fuse]);
+  }, [products, searchTerm, selectedCategory, sortBy, fuse]);
+
+  if (loading) return <div className="text-center py-24 text-xl text-muted-foreground">Loading products...</div>;
+  if (error) return <div className="text-center py-24 text-xl text-destructive">{error}</div>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,16 +185,45 @@ export const Products = () => {
               </motion.div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <ProductCard {...product} />
-                  </motion.div>
-                ))}
+                {filteredProducts.map((product, index) => {
+                  // Robustly find the first image and first video in the images array
+                  let imageProp = '';
+                  let videoProp = '';
+                  if (Array.isArray(product.images)) {
+                    for (const img of product.images) {
+                      let imgUrl = '';
+                      let vidUrl = '';
+                      if (typeof img === 'string' && img.trim().startsWith('{')) {
+                        try {
+                          const parsed = JSON.parse(img);
+                          if (parsed.image) imgUrl = parsed.image;
+                          if (parsed.video) vidUrl = parsed.video;
+                        } catch {}
+                      } else if (typeof img === 'object' && img !== null) {
+                        if (img.image) imgUrl = img.image;
+                        if (img.video) vidUrl = img.video;
+                      } else if (typeof img === 'string') {
+                        const isImage = img.match(/\.(png|jpe?g|webp|gif)(\?.*)?$/i);
+                        const isVideo = img.match(/\.(mp4|webm|mov)(\?.*)?$/i);
+                        if (isImage) imgUrl = img;
+                        if (isVideo) vidUrl = img;
+                      }
+                      if (!imageProp && imgUrl) imageProp = imgUrl;
+                      if (!videoProp && vidUrl) videoProp = vidUrl;
+                      if (imageProp && videoProp) break;
+                    }
+                  }
+                  return (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <ProductCard {...product} image={imageProp} video={videoProp} />
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
 

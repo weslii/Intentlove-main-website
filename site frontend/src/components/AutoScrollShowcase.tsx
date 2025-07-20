@@ -27,33 +27,53 @@ export const AutoScrollShowcase: React.FC<AutoScrollShowcaseProps> = ({ products
           minWidth: `${minRowWidth}px`,
         }}
       >
-        {displayProducts.map((product, idx) => (
-          <div
-            key={product.id + '-' + idx}
-            className="min-w-[340px] max-w-[380px] aspect-[4/3] bg-muted rounded-2xl shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-105 border border-border/10 relative flex items-end justify-center"
-            onClick={() => navigate(`/products/${product.id}`)}
-          >
-            {product.image.match(/\.(mp4|webm)$/) ? (
-              <video
-                src={product.image}
-                controls
-                className="w-full h-full object-cover absolute inset-0"
-              />
-            ) : (
-              <img
-                src={product.image}
-                alt={product.name}
-                loading="lazy"
-                className="w-full h-full object-cover absolute inset-0"
-              />
-            )}
-            {/* Overlay text */}
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm px-4 py-3 flex flex-col gap-1">
-              <div className="font-semibold text-lg text-white truncate">{product.name}</div>
-              <div className="font-bold text-primary text-xl">${product.price.toFixed(2)}</div>
+        {displayProducts.map((product, idx) => {
+          // Only show images for memory optimization
+          let mainImage = '';
+          if (Array.isArray(product.images)) {
+            for (const img of product.images) {
+              if (img === null || img === undefined) continue;
+              let imgUrl = '';
+              if (typeof img === 'string' && img.trim().startsWith('{')) {
+                try {
+                  const parsed = JSON.parse(img);
+                  if (parsed.image) imgUrl = parsed.image;
+                } catch {}
+              } else if (typeof img === 'object') {
+                if (img && typeof (img as any).image === 'string') imgUrl = (img as any).image;
+              } else if (typeof img === 'string') {
+                if (img.match(/\.(png|jpe?g|webp|gif)(\?.*)?$/i)) imgUrl = img;
+              }
+              if (imgUrl) {
+                mainImage = imgUrl;
+                break;
+              }
+            }
+          }
+          return (
+            <div
+              key={product.id + '-' + idx}
+              className="min-w-[340px] max-w-[380px] aspect-[4/3] bg-muted rounded-2xl shadow-md overflow-hidden cursor-pointer transition-transform hover:scale-105 border border-border/10 relative flex items-end justify-center"
+              onClick={() => navigate(`/products/${product.id}`)}
+            >
+              {mainImage ? (
+                <img
+                  src={mainImage}
+                  alt={product.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover absolute inset-0"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 absolute inset-0">No image</div>
+              )}
+              {/* Overlay text */}
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm px-4 py-3 flex flex-col gap-1">
+                <div className="font-semibold text-lg text-white truncate">{product.name}</div>
+                <div className="font-bold text-primary text-xl">${product.price?.toFixed(2) ?? ''}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <style>{`
         @keyframes marquee {

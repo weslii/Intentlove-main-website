@@ -5,9 +5,11 @@ import { FloatingElements } from "./3D/FloatingElements";
 import { ScrollAnimation } from "./animations/ScrollAnimations";
 import heroImage from "@/assets/hero-flowers.jpg";
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
   const containerRef = useRef(null);
+  const navigate = useNavigate();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
@@ -94,7 +96,12 @@ export const Hero = () => {
               whileHover={{ scale: 1.05, x: -5 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button variant="romantic" size="lg" className="text-lg px-8 py-4 rounded-full">
+              <Button
+                variant="romantic"
+                size="lg"
+                className="text-lg px-8 py-4 rounded-full"
+                onClick={() => navigate('/products')}
+              >
                 Shop Now
               </Button>
             </motion.div>
