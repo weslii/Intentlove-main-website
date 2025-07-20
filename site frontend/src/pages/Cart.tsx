@@ -127,12 +127,12 @@ export const Cart = () => {
                   <Button size="lg" variant="outline" className="rounded-full px-8 py-4 text-lg font-semibold w-full mt-2 text-primary" onClick={() => window.location.href = '/products'}>
                     Continue Shopping
                   </Button>
-                  <AutoScrollShowcase products={products} />
                 </div>
               )}
             </div>
           )}
         </div>
+        <AutoScrollShowcase products={products} />
       </main>
       <Footer />
     </div>

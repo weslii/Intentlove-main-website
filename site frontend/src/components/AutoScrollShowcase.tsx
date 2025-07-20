@@ -17,11 +17,11 @@ export const AutoScrollShowcase: React.FC<AutoScrollShowcaseProps> = ({ products
   const minRowWidth = displayProducts.length * cardWidth;
 
   return (
-    <div className="relative w-full pt-12 pb-0 md:pb-12 bg-muted/40 overflow-x-auto border-t border-border/20">
+    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] pt-12 pb-0 md:pb-12 bg-muted/40 overflow-x-auto border-t border-border/20">
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 font-sans tracking-tight">{title}</h2>
       <div
         ref={marqueeRef}
-        className="group flex items-center gap-8 animate-marquee hover:animate-marquee-slow min-w-fit md:min-w-0"
+        className="group flex items-center gap-8 animate-marquee hover:animate-marquee-slow min-w-fit md:min-w-0 w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] relative"
         style={{
           willChange: "transform",
           minWidth: `${minRowWidth}px`,
