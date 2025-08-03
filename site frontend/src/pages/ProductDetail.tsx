@@ -164,41 +164,57 @@ const ProductDetail = () => {
               )}
               <p className="text-lg text-muted-foreground mb-4">{product.description}</p>
               <div className="flex items-center gap-4 mb-6">
-                <span className="text-2xl font-bold text-primary">${product.price.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">₦{product.price.toLocaleString("en-NG", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}</span>
                 {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">${product.originalPrice.toFixed(2)}</span>
+                  <span className="text-lg text-muted-foreground line-through">₦{product.originalPrice.toLocaleString("en-NG", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}</span>
                 )}
               </div>
-              <Button
-                size="lg"
-                className={`rounded-full px-8 py-4 text-lg font-semibold relative transition-all duration-300 ${added ? 'bg-green-500 text-white' : ''}`}
-                onClick={() => {
-                  addToCart({ productId: product.id, quantity: 1 });
-                  toast({ title: 'Added to cart!', description: `${product.name} has been added to your cart.` });
-                  setAdded(true);
-                  setTimeout(() => setAdded(false), 1200);
-                }}
-                disabled={added}
-              >
-                <span className="flex items-center gap-2">
-                  {added ? (
-                    <Check className="h-6 w-6 animate-bounceIn" />
-                  ) : (
-                    <ShoppingCart className="h-6 w-6" />
-                  )}
-                  {added ? 'Added!' : 'Add to Cart'}
-                </span>
-                <style>{`
-                  @keyframes bounceIn {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    60% { transform: scale(1.2); opacity: 1; }
-                    100% { transform: scale(1); opacity: 1; }
-                  }
-                  .animate-bounceIn {
-                    animation: bounceIn 0.6s cubic-bezier(.68,-0.55,.27,1.55);
-                  }
-                `}</style>
-              </Button>
+              {product.id === 'card-custom' || product.id === 'jar-custom' || product.id === 'custom-package' ? (
+                <Button
+                  size="lg"
+                  className="rounded-full px-8 py-4 text-lg font-semibold bg-primary text-white hover:bg-primary/90"
+                  onClick={() => navigate('/customise')}
+                >
+                  Customise
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  className={`rounded-full px-8 py-4 text-lg font-semibold relative transition-all duration-300 ${added ? 'bg-green-500 text-white' : ''}`}
+                  onClick={() => {
+                    addToCart({ productId: product.id, quantity: 1 });
+                    toast({ title: 'Added to cart!', description: `${product.name} has been added to your cart.` });
+                    setAdded(true);
+                    setTimeout(() => setAdded(false), 1200);
+                  }}
+                  disabled={added}
+                >
+                  <span className="flex items-center gap-2">
+                    {added ? (
+                      <Check className="h-6 w-6 animate-bounceIn" />
+                    ) : (
+                      <ShoppingCart className="h-6 w-6" />
+                    )}
+                    {added ? 'Added!' : 'Add to Cart'}
+                  </span>
+                  <style>{`
+                    @keyframes bounceIn {
+                      0% { transform: scale(0.5); opacity: 0; }
+                      60% { transform: scale(1.2); opacity: 1; }
+                      100% { transform: scale(1); opacity: 1; }
+                    }
+                    .animate-bounceIn {
+                      animation: bounceIn 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+                    }
+                  `}</style>
+                </Button>
+              )}
             </div>
           </div>
         </div>

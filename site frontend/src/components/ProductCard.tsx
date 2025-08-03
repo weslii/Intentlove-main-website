@@ -266,25 +266,32 @@ export const ProductCard = ({
               </h3>
 
               {/* Price and Add to Cart Button */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <motion.span 
-                    className="text-lg font-bold text-white"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    ${price}
-                  </motion.span>
-                  {originalPrice && (
-                    <motion.span 
-                      className="text-sm text-gray-300 line-through"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      ${originalPrice}
-                    </motion.span>
-                  )}
-                </div>
+<div className="flex items-center justify-between">
+  <div className="flex items-center gap-2">
+    <motion.span 
+      className="text-lg font-bold text-white"
+      whileHover={{ scale: 1.05 }}
+    >
+      ₦{price.toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}
+    </motion.span>
+
+    {originalPrice && (
+      <motion.span 
+        className="text-sm text-gray-300 line-through"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        ₦{originalPrice.toLocaleString("en-NG", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}
+      </motion.span>
+    )}
+  </div>
                 
                 <motion.div
                   whileHover={{ scale: 1.02 }}

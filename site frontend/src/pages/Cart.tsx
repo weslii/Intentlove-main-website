@@ -7,8 +7,10 @@ import { toast } from "@/hooks/use-toast";
 import { ShoppingBag } from "lucide-react";
 import { AutoScrollShowcase } from "@/components/AutoScrollShowcase";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Cart = () => {
+  const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, clearCart } = useCartStore();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export const Cart = () => {
 
   const cartProducts = items.map(item => {
     const product = products.find((p: any) => p.id === item.productId);
-    return product ? { ...product, quantity: item.quantity } : null;
+    return product ? { ...product, ...item } : null;
   }).filter(Boolean);
   const subtotal = cartProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -90,7 +92,17 @@ export const Cart = () => {
                         )}
                         <div className="flex-1">
                           <div className="font-semibold text-lg mb-1">{item.name}</div>
-                          <div className="text-muted-foreground text-sm mb-2">${item.price.toFixed(2)} each</div>
+                          {item.customLink && (
+                            <div className="mb-1">
+                              <a href={item.customLink} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">
+                                See Preview
+                              </a>
+                            </div>
+                          )}
+                          <div className="text-muted-foreground text-sm mb-2">₦{item.price.toLocaleString("en-NG", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })} each</div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm">Qty:</span>
                             <input
@@ -116,17 +128,27 @@ export const Cart = () => {
                   })}
                   <div className="flex justify-between items-center mt-8 border-t pt-6">
                     <div className="text-xl font-bold">Subtotal</div>
-                    <div className="text-2xl font-bold text-primary">${subtotal.toFixed(2)}</div>
+                    <div className="text-2xl font-bold text-primary">₦{subtotal.toLocaleString("en-NG", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}</div>
                   </div>
                   <Button size="lg" className="rounded-full px-8 py-4 text-lg font-semibold w-full mt-4" onClick={() => {
-                    clearCart();
-                    toast({ title: 'Cart cleared', description: 'Your cart has been emptied.' });
+                    navigate("/checkout");
                   }}>
-                    Checkout
+                    Proceed to Checkout
                   </Button>
-                  <Button size="lg" variant="outline" className="rounded-full px-8 py-4 text-lg font-semibold w-full mt-2 text-primary" onClick={() => window.location.href = '/products'}>
-                    Continue Shopping
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                    <Button size="lg" variant="outline" className="rounded-full px-8 py-4 text-lg font-semibold w-full text-primary" onClick={() => window.location.href = '/products'}>
+                      Continue Shopping
+                    </Button>
+                    <Button size="lg" variant="outline" className="rounded-full px-8 py-4 text-lg font-semibold w-full text-destructive" onClick={() => {
+                      clearCart();
+                      toast({ title: 'Cart cleared', description: 'Your cart has been emptied.' });
+                    }}>
+                      Clear Cart
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

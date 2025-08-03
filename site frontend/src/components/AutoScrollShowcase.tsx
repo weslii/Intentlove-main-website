@@ -69,7 +69,10 @@ export const AutoScrollShowcase: React.FC<AutoScrollShowcaseProps> = ({ products
               {/* Overlay text */}
               <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm px-4 py-3 flex flex-col gap-1">
                 <div className="font-semibold text-lg text-white truncate">{product.name}</div>
-                <div className="font-bold text-primary text-xl">${product.price?.toFixed(2) ?? ''}</div>
+                <div className="font-bold text-primary text-xl">₦{product.price?.toLocaleString("en-NG", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }) ?? ''}</div>
               </div>
             </div>
           );

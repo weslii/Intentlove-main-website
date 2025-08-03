@@ -5,6 +5,7 @@ export type CartItem = {
   productId: string;
   quantity: number;
   customData?: any;
+  customLink?: string; // for custom products
 };
 
 interface CartState {

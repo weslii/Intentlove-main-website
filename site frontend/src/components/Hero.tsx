@@ -1,7 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Canvas } from "@react-three/fiber";
-import { FloatingElements } from "./3D/FloatingElements";
 import { ScrollAnimation } from "./animations/ScrollAnimations";
 import heroImage from "@/assets/hero-flowers.jpg";
 import { useRef } from "react";
@@ -42,13 +40,6 @@ export const Hero = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
       </motion.div>
-
-      {/* 3D Elements */}
-      <div className="absolute top-1/4 right-1/4 w-32 h-32 opacity-30">
-        <Canvas>
-          <FloatingElements />
-        </Canvas>
-      </div>
 
       {/* Content */}
       <motion.div 
@@ -109,7 +100,12 @@ export const Hero = () => {
               whileHover={{ scale: 1.05, x: -5 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button variant="soft" size="lg" className="text-lg px-8 py-4 rounded-full">
+              <Button
+                variant="soft"
+                size="lg"
+                className="text-lg px-8 py-4 rounded-full"
+                onClick={() => navigate('/customise')}
+              >
                 Custom
               </Button>
               </motion.div>
