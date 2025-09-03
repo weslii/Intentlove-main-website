@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "serve": "vite preview --port $PORT --host 0.0.0.0",
-    "monitor": "node uptime-monitor.js"
+    "monitor": "node uptime-monitor.js",
+    "start": "npm run serve & npm run monitor"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

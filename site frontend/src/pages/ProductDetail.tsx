@@ -168,8 +168,8 @@ const ProductDetail = () => {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}</span>
-                {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">₦{product.originalPrice.toLocaleString("en-NG", {
+                {product.originalprice && (
+                  <span className="text-lg text-muted-foreground line-through">₦{product.originalprice.toLocaleString("en-NG", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}</span>

@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { toast } from "@/hooks/use-toast";
 import { fetchProducts } from "@/lib/fetchProducts";
-import { createOrder, ShippingInfo } from "@/lib/orderService";
+import { createOrder, ShippingInfo, getCurrentUser } from "@/lib/orderService";
 import { initializePaystack, getPaystackPublicKey } from "@/lib/paystackService";
+import { calculateShippingRate, getShippingRates, ShippingRate } from "@/lib/shippingService";
 
 export const Checkout = () => {
   const navigate = useNavigate();
@@ -29,6 +30,14 @@ export const Checkout = () => {
     state: "",
     postalCode: "",
   });
+
+  // Shipping rates state
+  const [shippingRates, setShippingRates] = useState<{
+    standard: ShippingRate | null;
+    express: ShippingRate | null;
+  }>({ standard: null, express: null });
+  const [selectedShippingService, setSelectedShippingService] = useState<'standard' | 'express'>('standard');
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
 
   useEffect(() => {
     // Redirect to cart if cart is empty
@@ -55,13 +64,56 @@ export const Checkout = () => {
   }).filter(Boolean);
   
   const subtotal = cartProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 1500; // Fixed shipping cost of ₦1,500
+  
+  // Calculate shipping cost based on selected service
+  const currentShippingRate = shippingRates[selectedShippingService];
+  const shipping = currentShippingRate?.rate || 0;
+  
+
   const total = subtotal + shipping;
+  
+
+
+  // Calculate shipping rates when address changes
+  const calculateShippingRates = async () => {
+    const fullAddress = `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state}`.trim();
+    
+    if (fullAddress.length < 10) return; // Need minimum address length
+    
+    setCalculatingShipping(true);
+    try {
+      const rates = await getShippingRates(fullAddress);
+      setShippingRates(rates);
+      
+      if (!rates.standard && !rates.express) {
+        toast({
+          title: "Shipping not available",
+          description: "We don't currently ship to this location. Please contact us for assistance.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error calculating shipping rates:', error);
+      toast({
+        title: "Shipping calculation error",
+        description: "Unable to calculate shipping rates. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCalculatingShipping(false);
+    }
+  };
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setShippingInfo(prev => ({ ...prev, [name]: value }));
+    
+    // Recalculate shipping rates when address fields change
+    if (['address', 'city', 'state'].includes(name)) {
+      // Debounce the calculation
+      setTimeout(calculateShippingRates, 1000);
+    }
   };
 
   // Handle form submission
@@ -81,14 +133,30 @@ export const Checkout = () => {
       return;
     }
 
+    // Validate shipping
+    if (!currentShippingRate) {
+      toast({
+        title: "Shipping not available",
+        description: "Please enter a valid shipping address to calculate shipping rates.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setProcessing(true);
+      
+      // Ensure amount is a valid integer for Paystack
+      const amountInKobo = Math.round(total * 100);
+      if (amountInKobo <= 0 || !Number.isInteger(amountInKobo)) {
+        throw new Error('Invalid payment amount');
+      }
       
       // Initialize Paystack payment
       await initializePaystack({
         publicKey: getPaystackPublicKey(),
         email: shippingInfo.email,
-        amount: total * 100, // Convert to kobo (smallest currency unit)
+        amount: amountInKobo, // Use validated amount in kobo
         metadata: {
           custom_fields: [
             {
@@ -106,12 +174,27 @@ export const Checkout = () => {
         callback: async (response) => {
           if (response.status === "success") {
             try {
+              // Get current user if signed in
+              let currentUser = null;
+              try {
+                currentUser = await getCurrentUser();
+              } catch (error) {
+                // User is not signed in, which is fine
+                console.log("User not signed in during checkout");
+              }
+
               // Create order in database
               const orderData = await createOrder({
-                items,
-                shippingInfo,
-                subtotal: total,
+                items: cartProducts, // Use cartProducts with full product details
+                shippingInfo: {
+                  ...shippingInfo,
+                  shippingService: selectedShippingService,
+                  shippingCost: shipping,
+                  shippingZone: currentShippingRate.zone.name,
+                },
+                subtotal: subtotal, // Use subtotal without shipping
                 paymentReference: response.reference,
+                userId: currentUser?.id, // Include user ID if signed in
               });
               
               // Clear cart and redirect to success page
@@ -279,6 +362,72 @@ export const Checkout = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Shipping Service Selection */}
+                  {(shippingRates.standard || shippingRates.express) && (
+                    <div className="mb-6">
+                      <Label className="text-base font-medium">Shipping Service</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        {shippingRates.standard && (
+                          <div 
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                              selectedShippingService === 'standard' 
+                                ? 'border-primary bg-primary/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedShippingService('standard')}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h3 className="font-semibold">Standard Delivery</h3>
+                                <p className="text-sm text-gray-600">
+                                  {shippingRates.standard.zone.delivery_times.standard}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-bold text-lg">₦{shippingRates.standard.rate.toLocaleString()}</div>
+                                <div className="text-xs text-gray-500">{shippingRates.standard.zone.name}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {shippingRates.express && (
+                          <div 
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                              selectedShippingService === 'express' 
+                                ? 'border-primary bg-primary/5' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedShippingService('express')}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h3 className="font-semibold">Express Delivery</h3>
+                                <p className="text-sm text-gray-600">
+                                  {shippingRates.express.zone.delivery_times.express}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-bold text-lg">₦{shippingRates.express.rate.toLocaleString()}</div>
+                                <div className="text-xs text-gray-500">{shippingRates.express.zone.name}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Shipping calculation status */}
+                  {calculatingShipping && (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span className="text-blue-800">Calculating shipping rates...</span>
+                      </div>
+                    </div>
+                  )}
                 </form>
               </div>
             </div>
@@ -306,9 +455,16 @@ export const Checkout = () => {
                     <span>₦{subtotal.toLocaleString("en-NG")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Shipping</span>
+                    <span>
+                      Shipping {currentShippingRate && `(${selectedShippingService === 'standard' ? 'Standard' : 'Express'})`}
+                    </span>
                     <span>₦{shipping.toLocaleString("en-NG")}</span>
                   </div>
+                  {currentShippingRate && (
+                    <div className="text-xs text-gray-500">
+                      {currentShippingRate.zone.delivery_times[selectedShippingService]} • {currentShippingRate.zone.name}
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg pt-2 border-t">
                     <span>Total</span>
                     <span>₦{total.toLocaleString("en-NG")}</span>

@@ -1,22 +1,28 @@
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Heart, Search, ShoppingBag, User, Menu, X } from "lucide-react";
+import { Heart, Search, ShoppingBag, User, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSearchStore } from "@/hooks/use-search-store";
 import { useCartStore } from "@/hooks/use-cart-store";
+import { getCurrentUser, signOutUser } from "@/lib/orderService";
+import { toast } from "@/hooks/use-toast";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkBackground, setIsDarkBackground] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 100], [0.95, 0.98]);
   const headerBlur = useTransform(scrollY, [0, 100], [8, 16]);
   
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { searchTerm, setSearchTerm } = useSearchStore();
@@ -41,6 +47,53 @@ export const Header = () => {
   const handleNavigation = (path: string) => {
     navigate(path);
     closeMenu();
+  };
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        // User is not logged in
+        setCurrentUser(null);
+      }
+    };
+    
+    checkUser();
+  }, []);
+
+  const handleProfileClick = () => {
+    if (currentUser) {
+      setIsProfileMenuOpen(!isProfileMenuOpen);
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+      setCurrentUser(null);
+      setIsProfileMenuOpen(false);
+      toast({
+        title: "Signed out successfully 👋",
+        description: "You have been signed out of your account.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Error signing out",
+        description: "An error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const closeProfileMenu = () => {
+    setIsProfileMenuOpen(false);
   };
 
   useEffect(() => {
@@ -91,6 +144,7 @@ export const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Handle mobile menu
       if (
         isMobileMenuOpen &&
         mobileMenuRef.current &&
@@ -100,13 +154,24 @@ export const Header = () => {
       ) {
         closeMenu();
       }
+
+      // Handle profile menu
+      if (
+        isProfileMenuOpen &&
+        profileMenuRef.current &&
+        profileButtonRef.current &&
+        !profileMenuRef.current.contains(event.target as Node) &&
+        !profileButtonRef.current.contains(event.target as Node)
+      ) {
+        closeProfileMenu();
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isProfileMenuOpen]);
 
   // Determine text color: always dark on /products and /cart, otherwise adaptive
   const isLightPage = location.pathname.startsWith("/products") || location.pathname.startsWith("/cart");
@@ -196,10 +261,59 @@ export const Header = () => {
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 10 }}
                 whileTap={{ scale: 0.95 }}
+                className="relative"
               >
-                <Button variant="ghost" size="icon" className={iconColorClass}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={iconColorClass}
+                  onClick={handleProfileClick}
+                  ref={profileButtonRef}
+                >
                   <User className="h-5 w-5" />
                 </Button>
+
+                {/* Profile Dropdown Menu */}
+                <AnimatePresence>
+                  {isProfileMenuOpen && currentUser && (
+                    <motion.div
+                      className="absolute right-0 top-full mt-2 w-48 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg z-50"
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      ref={profileMenuRef}
+                    >
+                      <div className="p-3 border-b border-border/50">
+                        <p className="font-medium text-sm">{currentUser.user_metadata?.full_name || currentUser.email}</p>
+                        <p className="text-xs text-muted-foreground">{currentUser.email}</p>
+                      </div>
+                      <div className="p-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start text-sm"
+                          onClick={() => {
+                            navigate('/account');
+                            closeProfileMenu();
+                          }}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          My Account
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={handleSignOut}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Sign Out
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
               
               <motion.div

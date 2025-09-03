@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    
+    /* Sidebar Colors */
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
+    
+    /* Brand Colors */
+    --rose-light: 350 100% 95%;
+    --rose-medium: 350 100% 85%;
+    --rose-dark: 350 100% 75%;
+    --cream: 45 100% 95%;
+    --lavender: 270 50% 95%;
+    
+    /* Gradients */
+    --gradient-romantic: linear-gradient(135deg, hsl(350, 100%, 95%) 0%, hsl(270, 50%, 95%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(350, 100%, 85%) 100%);
+    
+    /* Shadows */
+    --shadow-romantic: 0 10px 25px -3px hsl(350, 100%, 85% / 0.3);
+    --shadow-soft: 0 4px 6px -1px hsl(0, 0%, 0% / 0.1);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .admin-card {
+    @apply bg-card border rounded-lg shadow-sm p-6;
+    border-color: hsl(var(--border));
+  }
+  
+  /* Dialog animations */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  @keyframes zoom-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes zoom-out {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0.95); opacity: 0; }
+  }
+  
+  @keyframes slide-in-from-top {
+    from { transform: translate(-50%, -60%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+  }
+  
+  @keyframes slide-out-to-top {
+    from { transform: translate(-50%, -50%); opacity: 1; }
+    to { transform: translate(-50%, -60%); opacity: 0; }
+  }
+  
+  @keyframes slide-in-from-left {
+    from { transform: translate(-60%, -50%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+  }
+  
+  @keyframes slide-out-to-left {
+    from { transform: translate(-50%, -50%); opacity: 1; }
+    to { transform: translate(-60%, -50%); opacity: 0; }
+  }
+  
+  .animate-in {
+    animation: fade-in 0.2s ease-out;
+  }
+  
+  .animate-out {
+    animation: fade-out 0.2s ease-in;
+  }
+  
+  .data-\[state\=open\]\:animate-in {
+    animation: zoom-in 0.2s ease-out;
+  }
+  
+  .data-\[state\=closed\]\:animate-out {
+    animation: zoom-out 0.2s ease-in;
+  }
+  
+  .data-\[state\=open\]\:fade-in-0 {
+    animation: fade-in 0.2s ease-out;
+  }
+  
+  .data-\[state\=closed\]\:fade-out-0 {
+    animation: fade-out 0.2s ease-in;
+  }
+  
+  .data-\[state\=open\]\:zoom-in-95 {
+    animation: zoom-in 0.2s ease-out;
+  }
+  
+  .data-\[state\=closed\]\:zoom-out-95 {
+    animation: zoom-out 0.2s ease-in;
+  }
+  
+  .data-\[state\=open\]\:slide-in-from-left-1\/2 {
+    animation: slide-in-from-left 0.2s ease-out;
+  }
+  
+  .data-\[state\=closed\]\:slide-out-to-left-1\/2 {
+    animation: slide-out-to-left 0.2s ease-in;
+  }
+  
+  .data-\[state\=open\]\:slide-in-from-top-\[48\%\] {
+    animation: slide-in-from-top 0.2s ease-out;
+  }
+  
+  .data-\[state\=closed\]\:slide-out-to-top-\[48\%\] {
+    animation: slide-out-to-top 0.2s ease-in;
+  }
+  
+  .admin-card-header {
+    @apply flex items-center justify-between mb-4;
+  }
+  
+  .admin-card-title {
+    @apply text-lg font-semibold text-card-foreground;
+  }
+  
+  .admin-card-content {
+    @apply space-y-4;
+  }
+  
+  .admin-sidebar {
+    @apply bg-sidebar text-sidebar-foreground border-r border-sidebar-border;
+  }
+  
+  .admin-sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+  }
+  
+  .admin-sidebar-item.active {
+    @apply bg-sidebar-primary text-sidebar-primary-foreground;
+  }
+  
+  .admin-header {
+    @apply bg-background border-b px-6 py-4;
+    border-color: hsl(var(--border));
+  }
+  
+  .admin-main {
+    @apply bg-background min-h-screen;
+  }
+  
+  .admin-content {
+    @apply p-6 space-y-6;
+  }
+  
+  .admin-stats-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  }
+  
+  .admin-stats-card {
+    @apply admin-card hover:shadow-md transition-shadow;
+  }
+  
+  .admin-table {
+    @apply w-full border-collapse;
+  }
+  
+  .admin-table th {
+    @apply bg-muted px-4 py-3 text-left text-sm font-medium text-muted-foreground;
+  }
+  
+  .admin-table td {
+    @apply px-4 py-3 text-sm border-t;
+    border-color: hsl(var(--border));
+  }
+  
+  .admin-table tr:hover {
+    @apply bg-muted/50;
+  }
+}

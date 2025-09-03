@@ -13,26 +13,26 @@ interface ProductCardProps {
   id: string;
   name: string;
   price: number;
-  originalPrice?: number;
+  originalprice?: number;
   image: string;
   video?: string;
   rating?: number;
   reviewCount?: number;
-  isOnSale?: boolean;
-  isFavorite?: boolean;
+  isonsale?: boolean;
+  isfavorite?: boolean;
 }
 
 export const ProductCard = ({ 
   id,
   name, 
   price, 
-  originalPrice, 
+  originalprice, 
   image, 
   video,
   rating, 
   reviewCount, 
-  isOnSale, 
-  isFavorite 
+  isonsale, 
+  isfavorite 
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -214,7 +214,7 @@ export const ProductCard = ({
           />
           
           {/* Badges */}
-          {isOnSale && (
+          {isonsale && (
             <motion.div 
               className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm z-10"
               initial={{ scale: 0, rotate: -10 }}
@@ -239,18 +239,18 @@ export const ProductCard = ({
                 e.stopPropagation();
                 toggleFavorite(id);
                 toast({
-                  title: isFavorite ? 'Removed from favorites' : 'Added to favorites',
-                  description: isFavorite ? `${name} removed from your favorites.` : `${name} added to your favorites.`
+                  title: isfavorite ? 'Removed from favorites' : 'Added to favorites',
+                  description: isfavorite ? `${name} removed from your favorites.` : `${name} added to your favorites.`
                 });
               }}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              aria-label={isfavorite ? "Remove from favorites" : "Add to favorites"}
             >
-              <motion.div
-                animate={{ scale: isFavorite ? [1, 1.3, 1] : 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current text-primary' : ''}`} />
-              </motion.div>
+                              <motion.div
+                  animate={{ scale: isfavorite ? [1, 1.3, 1] : 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Heart className={`h-4 w-4 ${isfavorite ? 'fill-current text-primary' : ''}`} />
+                </motion.div>
             </Button>
           </motion.div>
 
@@ -278,14 +278,14 @@ export const ProductCard = ({
       })}
     </motion.span>
 
-    {originalPrice && (
+    {originalprice && (
       <motion.span 
         className="text-sm text-gray-300 line-through"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        ₦{originalPrice.toLocaleString("en-NG", {
+        ₦{originalprice.toLocaleString("en-NG", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
         })}

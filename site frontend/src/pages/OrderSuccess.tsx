@@ -61,25 +61,51 @@ export const OrderSuccess = () => {
     try {
       setLoading(true);
       
-      // Create user account
-      await createUserAccount(
+      // Create user account and automatically sign them in
+      const result = await createUserAccount(
         signupData.email,
         signupData.password,
         signupData.fullName
       );
       
-      toast({
-        title: "Account created successfully!",
-        description: "You can now log in to view your order history.",
-      });
-      
-      // Redirect to account page or home
-      navigate("/account");
+      // Check if user is now signed in
+      if (result.user) {
+        toast({
+          title: "Account created successfully! ✨",
+          description: "Welcome! You're now signed in and can view your order history. Any previous orders with this email have been linked to your account.",
+        });
+        
+        // Redirect directly to account page since they're already signed in
+        navigate("/account");
+      } else {
+        // Fallback: redirect to login if something went wrong
+        toast({
+          title: "Account created successfully! ✨",
+          description: "Please sign in to view your order history.",
+        });
+        navigate("/login");
+      }
     } catch (error) {
       console.error("Error creating account:", error);
+      
+      // Handle specific error cases
+      let errorMessage = "An error occurred while creating your account.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("already registered")) {
+          errorMessage = "An account with this email already exists. Please try logging in instead.";
+        } else if (error.message.includes("password")) {
+          errorMessage = "Password must be at least 6 characters long.";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "There was an issue with the sign-in process. Please try logging in manually.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error creating account",
-        description: error instanceof Error ? error.message : "An error occurred while creating your account.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -142,6 +168,7 @@ export const OrderSuccess = () => {
                       onChange={handleInputChange}
                       placeholder="John Doe"
                       required
+                      autoComplete="name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -154,6 +181,7 @@ export const OrderSuccess = () => {
                       onChange={handleInputChange}
                       placeholder="john@example.com"
                       required
+                      autoComplete="email"
                     />
                   </div>
                   <div className="space-y-2">
@@ -166,6 +194,7 @@ export const OrderSuccess = () => {
                       onChange={handleInputChange}
                       placeholder="••••••••"
                       required
+                      autoComplete="new-password"
                     />
                   </div>
                   <div className="space-y-2">
@@ -178,6 +207,7 @@ export const OrderSuccess = () => {
                       onChange={handleInputChange}
                       placeholder="••••••••"
                       required
+                      autoComplete="new-password"
                     />
                   </div>
                   <div className="pt-4 flex flex-col sm:flex-row gap-4">

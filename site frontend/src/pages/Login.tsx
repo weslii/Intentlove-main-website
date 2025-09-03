@@ -42,17 +42,33 @@ export const Login = () => {
       await signInUser(formData.email, formData.password);
       
       toast({
-        title: "Signed in successfully!",
-        description: "Welcome back to your account.",
+        title: "Welcome back! ✨",
+        description: "You've successfully signed in to your account.",
       });
       
       // Redirect to account page
       navigate("/account");
     } catch (error) {
       console.error("Error signing in:", error);
+      
+      // Handle specific error cases
+      let errorMessage = "Invalid email or password.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Please check your email and click the confirmation link to activate your account before signing in.";
+        } else if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.message.includes("Too many requests")) {
+          errorMessage = "Too many login attempts. Please wait a moment before trying again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error signing in",
-        description: error instanceof Error ? error.message : "Invalid email or password.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -79,6 +95,7 @@ export const Login = () => {
                   onChange={handleInputChange}
                   placeholder="john@example.com"
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="space-y-2">
@@ -96,6 +113,7 @@ export const Login = () => {
                   onChange={handleInputChange}
                   placeholder="••••••••"
                   required
+                  autoComplete="current-password"
                 />
               </div>
               

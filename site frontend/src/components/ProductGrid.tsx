@@ -9,6 +9,7 @@ export const ProductGrid = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const navigate = useNavigate();
 
@@ -21,6 +22,17 @@ export const ProductGrid = () => {
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
   if (loading) return <div className="text-center py-24 text-xl text-muted-foreground">Loading products...</div>;
@@ -70,7 +82,7 @@ export const ProductGrid = () => {
         </ScrollAnimation>
 
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.slice(0, 6).map((product, index) => {
+          {products.slice(0, isDesktop ? 6 : 3).map((product, index) => {
             // Robustly find the first image and first video in the images array
             let imageProp = '';
             let videoProp = '';

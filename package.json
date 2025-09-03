@@ -1,0 +1,41 @@
+{
+  "name": "intentlove-shop",
+  "version": "3.0.0",
+  "description": "IntentLove Shop - Complete e-commerce platform with frontend, backend, and admin dashboard",
+  "private": true,
+  "scripts": {
+    "dev": "start-all.bat",
+    "dev:backend": "cd creative-card-scribe-main/server && npm run dev",
+    "dev:frontend": "cd site frontend && npm run dev",
+    "dev:creative": "cd creative-card-scribe-main/creative-card-scribe-main && npm run dev",
+    "dev:admin": "cd site frontend/admin-dashboard && npm run dev",
+    "build": "npm run build:frontend && npm run build:creative && npm run build:admin",
+    "build:frontend": "cd site frontend && npm run build",
+    "build:creative": "cd creative-card-scribe-main/creative-card-scribe-main && npm run build",
+    "build:admin": "cd site frontend/admin-dashboard && npm run build",
+    "install:all": "npm run install:backend && npm run install:frontend && npm run install:creative && npm run install:admin",
+    "install:backend": "cd creative-card-scribe-main/server && npm install",
+    "install:frontend": "cd site frontend && npm install",
+    "install:creative": "cd creative-card-scribe-main/creative-card-scribe-main && npm install",
+    "install:admin": "cd site frontend/admin-dashboard && npm install",
+    "start": "npm run dev",
+    "start:production": "npm run install:all && npm run build && cd creative-card-scribe-main/server && npm run start:production",
+    "stop": "echo 'Use Ctrl+C to stop all services'",
+    "clean": "npm run clean:node_modules && npm run clean:dist && npm run clean:build",
+    "clean:node_modules": "rimraf **/node_modules",
+    "clean:dist": "rimraf **/dist",
+    "clean:build": "rimraf **/build",
+    "deploy:railway": "railway up",
+    "deploy:railway:backend": "cd creative-card-scribe-main/server && railway up",
+    "deploy:railway:frontend": "cd site frontend && railway up",
+    "deploy:railway:creative": "cd creative-card-scribe-main/creative-card-scribe-main && railway up",
+    "deploy:railway:admin": "cd site frontend/admin-dashboard && railway up"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

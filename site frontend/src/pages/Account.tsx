@@ -5,9 +5,15 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { getCurrentUser, getUserOrders, signOutUser } from "@/lib/orderService";
+import { supabase } from "@/lib/supabaseClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LogOut, Package, User } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Loader2, LogOut, Package, User, Calendar, MapPin, CreditCard, Truck } from "lucide-react";
 
 export const Account = () => {
   const navigate = useNavigate();
@@ -15,6 +21,14 @@ export const Account = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showOrderDetails, setShowOrderDetails] = useState<boolean>(false);
+  const [showUpdateProfile, setShowUpdateProfile] = useState<boolean>(false);
+  const [updateProfileData, setUpdateProfileData] = useState({
+    fullName: "",
+    email: "",
+  });
+  const [updatingProfile, setUpdatingProfile] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if user is logged in
@@ -31,9 +45,21 @@ export const Account = () => {
         }
       } catch (error) {
         console.error("Error checking user:", error);
+        
+        // Handle specific authentication errors
+        let errorMessage = "Please log in again.";
+        
+        if (error instanceof Error) {
+          if (error.message.includes("Auth session missing")) {
+            errorMessage = "Your session has expired. Please log in again.";
+          } else if (error.message.includes("JWT expired")) {
+            errorMessage = "Your login session has expired. Please log in again.";
+          }
+        }
+        
         toast({
           title: "Authentication error",
-          description: "Please log in again.",
+          description: errorMessage,
           variant: "destructive",
         });
         navigate("/login");
@@ -66,7 +92,7 @@ export const Account = () => {
     try {
       await signOutUser();
       toast({
-        title: "Signed out successfully",
+        title: "Signed out successfully 👋",
         description: "You have been signed out of your account.",
       });
       navigate("/");
@@ -77,6 +103,90 @@ export const Account = () => {
         description: "An error occurred while signing out.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleViewOrderDetails = (order: any) => {
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'shipped':
+        return 'bg-blue-100 text-blue-800';
+      case 'processing':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleUpdateProfile = () => {
+    setUpdateProfileData({
+      fullName: user?.user_metadata?.full_name || "",
+      email: user?.email || "",
+    });
+    setShowUpdateProfile(true);
+  };
+
+  const handleProfileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdateProfileData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!updateProfileData.fullName.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide your full name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setUpdatingProfile(true);
+      
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: updateProfileData.fullName.trim(),
+        },
+      });
+
+      if (error) throw error;
+
+      // Update local user state
+      setUser(prev => ({
+        ...prev,
+        user_metadata: {
+          ...prev?.user_metadata,
+          full_name: updateProfileData.fullName.trim(),
+        },
+      }));
+
+      toast({
+        title: "Profile updated successfully! ✨",
+        description: "Your profile information has been updated.",
+      });
+
+      setShowUpdateProfile(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Error updating profile",
+        description: error instanceof Error ? error.message : "An error occurred while updating your profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -141,7 +251,9 @@ export const Account = () => {
                       <p className="text-lg">{user?.user_metadata?.full_name || "Not provided"}</p>
                     </div>
                     <div className="pt-4">
-                      <Button className="rounded-full">Update Profile</Button>
+                      <Button className="rounded-full" onClick={handleUpdateProfile}>
+                        Update Profile
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -198,9 +310,9 @@ export const Account = () => {
                               <div className="font-bold">
                                 ₦{order.subtotal.toLocaleString("en-NG")}
                               </div>
-                              <span className="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                              <Badge className={`text-xs ${getStatusColor(order.status)}`}>
                                 {order.status}
-                              </span>
+                              </Badge>
                             </div>
                           </div>
 
@@ -218,7 +330,11 @@ export const Account = () => {
                           </div>
 
                           <div className="mt-4 pt-2 border-t flex justify-end">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewOrderDetails(order)}
+                            >
                               View Details
                             </Button>
                           </div>
@@ -233,8 +349,205 @@ export const Account = () => {
         </div>
       </main>
       <Footer />
-    </div>
-  );
-};
+
+      {/* Order Details Modal */}
+      <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Order Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about your order
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrder && (
+            <div className="space-y-6">
+              {/* Order Header */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Order #{selectedOrder.id.substring(0, 8)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Placed on {new Date(selectedOrder.created_at).toLocaleDateString("en-NG", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
+                  </p>
+                </div>
+                <Badge className={getStatusColor(selectedOrder.status)}>
+                  {selectedOrder.status}
+                </Badge>
+              </div>
+
+              <Separator />
+
+              {/* Order Items */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Order Items
+                </h4>
+                <div className="space-y-3">
+                  {selectedOrder.items.map((item: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{item.productId}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          ₦{(item.price * item.quantity).toLocaleString("en-NG")}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          ₦{item.price.toLocaleString("en-NG")} each
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Shipping Information */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Shipping Information
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="font-medium">{selectedOrder.shipping_info?.fullName || selectedOrder.customer_name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedOrder.shipping_info?.email || selectedOrder.customer_email}</p>
+                  <p className="text-sm text-muted-foreground">{selectedOrder.shipping_info?.phone}</p>
+                  <p className="text-sm text-muted-foreground">{selectedOrder.shipping_address}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Payment Information */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Payment Information
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Payment Reference</p>
+                  <p className="font-medium">{selectedOrder.payment_reference}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Order Summary */}
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Order Summary
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>₦{selectedOrder.subtotal?.toLocaleString("en-NG") || selectedOrder.total_amount?.toLocaleString("en-NG")}</span>
+                  </div>
+                  {selectedOrder.shipping_info?.shippingCost && (
+                    <div className="flex justify-between">
+                      <span>Shipping:</span>
+                      <span>₦{selectedOrder.shipping_info.shippingCost.toLocaleString("en-NG")}</span>
+                    </div>
+                  )}
+                  <Separator />
+                  <div className="flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span>₦{selectedOrder.total_amount?.toLocaleString("en-NG")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+                 </DialogContent>
+       </Dialog>
+
+       {/* Update Profile Modal */}
+       <Dialog open={showUpdateProfile} onOpenChange={setShowUpdateProfile}>
+         <DialogContent className="max-w-md">
+           <DialogHeader>
+             <DialogTitle className="flex items-center gap-2">
+               <User className="h-5 w-5" />
+               Update Profile
+             </DialogTitle>
+             <DialogDescription>
+               Update your account information
+             </DialogDescription>
+           </DialogHeader>
+
+           <form onSubmit={handleProfileSubmit} className="space-y-4">
+             <div className="space-y-2">
+               <Label htmlFor="fullName">Full Name</Label>
+               <Input
+                 id="fullName"
+                 name="fullName"
+                 value={updateProfileData.fullName}
+                 onChange={handleProfileInputChange}
+                 placeholder="Enter your full name"
+                 required
+                 autoComplete="name"
+               />
+             </div>
+             
+             <div className="space-y-2">
+               <Label htmlFor="email">Email Address</Label>
+               <Input
+                 id="email"
+                 name="email"
+                 type="email"
+                 value={updateProfileData.email}
+                 disabled
+                 className="bg-gray-50"
+               />
+               <p className="text-xs text-muted-foreground">
+                 Email address cannot be changed for security reasons
+               </p>
+             </div>
+
+             <div className="flex gap-3 pt-4">
+               <Button
+                 type="submit"
+                 className="flex-1"
+                 disabled={updatingProfile}
+               >
+                 {updatingProfile ? (
+                   <>
+                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                     Updating...
+                   </>
+                 ) : (
+                   "Update Profile"
+                 )}
+               </Button>
+               <Button
+                 type="button"
+                 variant="outline"
+                 onClick={() => setShowUpdateProfile(false)}
+                 disabled={updatingProfile}
+               >
+                 Cancel
+               </Button>
+             </div>
+           </form>
+         </DialogContent>
+       </Dialog>
+     </div>
+   );
+ };
 
 export default Account;
