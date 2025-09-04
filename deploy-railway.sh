@@ -67,7 +67,7 @@ if [ "$1" = "separate" ]; then
     deploy_service "Main Frontend" "site frontend" "5173"
     
     # Deploy Creative Card App
-    deploy_service "Creative Card App" "creative-card-scribe-main/creative-card-scribe-main" "5174"
+    deploy_service "Creative Card App" "creative-card-scribe-main/card-tool" "5174"
     
     # Deploy Admin Dashboard
     deploy_service "Admin Dashboard" "site frontend/admin-dashboard" "5175"

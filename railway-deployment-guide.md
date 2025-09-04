@@ -77,7 +77,7 @@ railway link
 railway up
 
 # Deploy Creative Card App
-cd creative-card-scribe-main/creative-card-scribe-main
+cd creative-card-scribe-main/card-tool
 railway link
 railway up
 

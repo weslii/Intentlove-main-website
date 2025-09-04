@@ -59,7 +59,7 @@ railway up
 
 ### **Creative Card App**
 ```bash
-cd creative-card-scribe-main/creative-card-scribe-main
+cd creative-card-scribe-main/card-tool
 railway link
 railway up
 ```

@@ -39,7 +39,7 @@ echo "Waiting 2 seconds for main frontend to initialize..."
 sleep 2
 
 echo "Starting Creative Card Frontend..."
-cd "creative-card-scribe-main/creative-card-scribe-main"
+cd "creative-card-scribe-main/card-tool"
 npm run dev &
 CREATIVE_PID=$!
 cd ../..

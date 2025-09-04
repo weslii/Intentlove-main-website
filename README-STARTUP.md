@@ -45,7 +45,7 @@ The startup scripts will launch four main components:
 3. **Creative Card Frontend** (Port 5174)
    - React creative card application
    - Card customization and creation interface
-   - Located in `creative-card-scribe-main/creative-card-scribe-main/`
+   - Located in `creative-card-scribe-main/card-tool/`
 
 4. **Admin Dashboard** (Port 5175)
    - React admin interface

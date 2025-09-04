@@ -76,7 +76,7 @@ if "%1"=="separate" (
     call :deploy_service "Main Frontend" "site frontend" "5173"
     
     REM Deploy Creative Card App
-    call :deploy_service "Creative Card App" "creative-card-scribe-main\creative-card-scribe-main" "5174"
+    call :deploy_service "Creative Card App" "creative-card-scribe-main\card-tool" "5174"
     
     REM Deploy Admin Dashboard
     call :deploy_service "Admin Dashboard" "site frontend\admin-dashboard" "5175"
