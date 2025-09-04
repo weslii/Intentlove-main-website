@@ -50,8 +50,7 @@ const ProductDetail = () => {
     </div>
   );
 
-  // Debug: log images array format
-  console.log('Product images:', product.images);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -175,7 +174,7 @@ const ProductDetail = () => {
                   })}</span>
                 )}
               </div>
-              {product.id === 'card-custom' || product.id === 'jar-custom' || product.id === 'custom-package' ? (
+              {product.id === 'card-custom' || product.id === 'jar-custom' || product.id === 'custom-package' || product.theme === 'custom' || product.theme === 'Custom' || product.theme?.toLowerCase() === 'custom' ? (
                 <Button
                   size="lg"
                   className="rounded-full px-8 py-4 text-lg font-semibold bg-primary text-white hover:bg-primary/90"

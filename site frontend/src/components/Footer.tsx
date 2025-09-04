@@ -48,10 +48,8 @@ export const Footer = () => {
             </a>
           </div>
           <nav className="hidden md:flex gap-4 justify-center text-sm text-muted-foreground md:ml-6">
-            <button onClick={() => handleNavigation('/products')} className="hover:text-primary transition-colors cursor-pointer">Flowers</button>
-            <button onClick={() => handleNavigation('/gifts')} className="hover:text-primary transition-colors cursor-pointer">Gifts</button>
-            <button onClick={() => handleNavigation('/custom')} className="hover:text-primary transition-colors cursor-pointer">Custom</button>
-            <button onClick={() => handleNavigation('/about')} className="hover:text-primary transition-colors cursor-pointer">About</button>
+            <button onClick={() => handleNavigation('/products')} className="hover:text-primary transition-colors cursor-pointer">Products</button>
+            <button onClick={() => handleNavigation('/contact')} className="hover:text-primary transition-colors cursor-pointer">Contact</button>
           </nav>
         </div>
       </div>

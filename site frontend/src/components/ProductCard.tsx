@@ -50,24 +50,100 @@ export const ProductCard = ({
   // Remove all previous media extraction logic
   const hasVideo = typeof video === 'string' && decodeURIComponent(video).split('?')[0].match(/\.(mp4|webm|mov)$/i);
 
-  // Intersection Observer for mobile
+  // Intersection Observer for mobile - only play videos for products in center area
   useEffect(() => {
     if (!isMobile) return;
     const node = cardRef.current;
     if (!node) return;
+    
     const observer = new window.IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.3 }
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Calculate how centered the product is in the viewport
+          const rect = entry.boundingClientRect;
+          const viewportHeight = window.innerHeight;
+          const viewportWidth = window.innerWidth;
+          
+          // Calculate center position of the product
+          const productCenterY = rect.top + rect.height / 2;
+          const productCenterX = rect.left + rect.width / 2;
+          
+          // Calculate viewport center
+          const viewportCenterY = viewportHeight / 2;
+          const viewportCenterX = viewportWidth / 2;
+          
+          // Calculate distance from viewport center (0 = perfectly centered, higher = further away)
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(productCenterY - viewportCenterY, 2) + 
+            Math.pow(productCenterX - viewportCenterX, 2)
+          );
+          
+          // Only consider "in center" if within 40% of viewport dimensions
+          const centerThreshold = Math.min(viewportHeight, viewportWidth) * 0.4;
+          const isInCenter = distanceFromCenter < centerThreshold;
+          
+          setIsInView(isInCenter);
+        } else {
+          setIsInView(false);
+        }
+      },
+      { 
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        rootMargin: '0px'
+      }
     );
     observer.observe(node);
     return () => observer.disconnect();
+  }, [isMobile]);
+
+  // Add scroll listener for better performance on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const handleScroll = () => {
+      // Debounce scroll events for better performance
+      if (videoTimeout.current) {
+        clearTimeout(videoTimeout.current);
+      }
+      
+      videoTimeout.current = setTimeout(() => {
+        // Re-evaluate if current product should show video
+        if (cardRef.current) {
+          const rect = cardRef.current.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const viewportWidth = window.innerWidth;
+          
+          const productCenterY = rect.top + rect.height / 2;
+          const productCenterX = rect.left + rect.width / 2;
+          const viewportCenterY = viewportHeight / 2;
+          const viewportCenterX = viewportWidth / 2;
+          
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(productCenterY - viewportCenterY, 2) + 
+            Math.pow(productCenterX - viewportCenterX, 2)
+          );
+          
+          const centerThreshold = Math.min(viewportHeight, viewportWidth) * 0.4;
+          const isInCenter = distanceFromCenter < centerThreshold;
+          
+          setIsInView(isInCenter);
+        }
+      }, 100); // 100ms debounce
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (videoTimeout.current) clearTimeout(videoTimeout.current);
+    };
   }, [isMobile]);
 
   // Handle video show logic
   useEffect(() => {
     if (isMobile) {
       if (isInView && hasVideo) {
-        videoTimeout.current = setTimeout(() => setShowVideo(true), 1000);
+        // Shorter delay for products in center area
+        videoTimeout.current = setTimeout(() => setShowVideo(true), 200);
       } else {
         setShowVideo(false);
         if (videoTimeout.current) clearTimeout(videoTimeout.current);

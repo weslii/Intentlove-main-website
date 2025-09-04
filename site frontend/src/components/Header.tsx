@@ -8,6 +8,7 @@ import { useSearchStore } from "@/hooks/use-search-store";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { getCurrentUser, signOutUser } from "@/lib/orderService";
 import { toast } from "@/hooks/use-toast";
+import { useWhatsApp } from "@/contexts/WhatsAppContext";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,6 +19,7 @@ export const Header = () => {
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 100], [0.95, 0.98]);
   const headerBlur = useTransform(scrollY, [0, 100], [8, 16]);
+  const { setShowWhatsAppModal } = useWhatsApp();
   
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const mobileButtonRef = useRef<HTMLButtonElement>(null);
@@ -45,6 +47,12 @@ export const Header = () => {
   };
 
   const handleNavigation = (path: string) => {
+    if (path === '/contact') {
+      // Open WhatsApp modal instead of navigating
+      setShowWhatsAppModal(true);
+      closeMenu();
+      return;
+    }
     navigate(path);
     closeMenu();
   };
@@ -207,9 +215,8 @@ export const Header = () => {
             <nav className="hidden md:flex items-center space-x-8">
               {[
                 { name: "Home", path: "/" },
-                { name: "Flowers", path: "/products" },
-                { name: "Gifts", path: "/gifts" },
-                { name: "About", path: "/about" }
+                { name: "Products", path: "/products" },
+                { name: "Contact", path: "/contact" }
               ].map((item, index) => (
                 <motion.button
                   key={item.name}
@@ -362,9 +369,8 @@ export const Header = () => {
               <nav className="pt-4 pb-2 space-y-2 px-4">
                 {[
                   { name: "Home", path: "/" },
-                  { name: "Flowers", path: "/products" },
-                  { name: "Gifts", path: "/gifts" },
-                  { name: "About", path: "/about" }
+                  { name: "Products", path: "/products" },
+                  { name: "Contact", path: "/contact" }
                 ].map((item, index) => (
                   <motion.button
                     key={item.name}
