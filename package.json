@@ -9,7 +9,7 @@
     "dev:frontend": "cd \"site frontend\" && npm run dev",
     "dev:creative": "cd creative-card-scribe-main/creative-card-scribe-main && npm run dev",
     "dev:admin": "cd \"site frontend/admin-dashboard\" && npm run dev",
-    "build": "npm run install:all && npm run build:frontend && npm run build:creative && npm run build:admin",
+    "build": "bash build.sh",
     "build:frontend": "cd \"site frontend\" && npm run build",
     "build:creative": "cd creative-card-scribe-main/creative-card-scribe-main && npm run build",
     "build:admin": "cd \"site frontend/admin-dashboard\" && npm run build",
